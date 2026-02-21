@@ -29,9 +29,9 @@ jobs:
           platforms: linux/arm64  # your servers are ARM64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:latest
           cache-to: type=inline
 
       - name: Deploy to server
@@ -42,9 +42,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:latest
             sudo docker service update \
-              --image ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest \
+              --image ${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:latest \
               --with-registry-auth \
               app_auth-service
             echo "Deployed auth-service @ ${{ github.sha }}"

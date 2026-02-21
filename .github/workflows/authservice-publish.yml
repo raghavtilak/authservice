@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arm
 
     steps:
       - name: Checkout code
@@ -46,5 +46,5 @@ jobs:
             sudo docker service update \
               --image ${{ secrets.DOCKERHUB_USERNAME }}/ffmpeg-microservices-auth-service:latest \
               --with-registry-auth \
-              app_auth-service
+              ffmpeg_stack_auth-service
             echo "Deployed auth-service @ ${{ github.sha }}"

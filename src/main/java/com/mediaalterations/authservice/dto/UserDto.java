@@ -6,8 +6,14 @@ import java.util.UUID;
 import lombok.ToString;
 
 public record UserDto(
-        UUID uuid,
+
+        UUID id,
+
         String email,
+
         String fullname,
-        LocalDateTime created_at) {
+
+        LocalDateTime createdAt
+
+) {
 }

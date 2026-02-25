@@ -123,13 +123,11 @@ public class AuthService {
                         Auth savedAuth = authRepository.saveAndFlush(auth);
 
                         log.info("Auth record created successfully. userId={}", savedAuth.getUserId());
-                        log.info("Auth Object", savedAuth);
                         UserDto dto = new UserDto(
                                         savedAuth.getUserId(),
                                         signupRequest.email(),
                                         signupRequest.fullName(),
                                         savedAuth.getCreatedAt());
-                        log.info("Constructed UserDto for user-service call: {}", dto);
                         ResponseEntity<UserDto> response = userClient.add(dto);
 
                         if (!response.getStatusCode().is2xxSuccessful()) {

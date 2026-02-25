@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "user-service", url = "${services.user-service.url}")
+@FeignClient(name = "user-service", path = "/user", url = "${services.user-service.url}")
 public interface UserClient {
 
-    @PostMapping("/user/add")
+    @PostMapping("/add")
     public ResponseEntity<UserDto> add(@RequestBody UserDto userDto);
 
     @GetMapping

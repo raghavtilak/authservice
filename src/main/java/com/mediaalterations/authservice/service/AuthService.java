@@ -117,7 +117,10 @@ public class AuthService {
                                         signupRequest.username(),
                                         passwordEncoder.encode(signupRequest.password()));
 
-                        Auth savedAuth = authRepository.save(auth);
+                        // transaction will still rollabck if user-service call fails, while using
+                        // saveAndFlush ensures we get the generated user_id immediately for the
+                        // user-service call
+                        Auth savedAuth = authRepository.saveAndFlush(auth);
 
                         ResponseEntity<UserDto> response = userClient.add(
                                         new UserDto(
@@ -164,4 +167,5 @@ public class AuthService {
                                         "Signup failed due to internal error", ex);
                 }
         }
+
 }

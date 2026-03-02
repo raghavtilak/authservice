@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -209,7 +210,8 @@ public class AuthService {
                 log.info("Generated sessionId={} for userId={}", sessionId, userId);
                 // save in redis
                 redisService.set("user:" + userId, new RedisSessionDetails(sessionId, null), 2L);
-
+                // reverse index required for refreshToken
+                redisService.set("session:" + sessionId, userId, 2L);
                 // send sessionId in Http Safe cookie
                 ResponseCookie refreshCookie = ResponseCookie.from("session", sessionId)
                                 .httpOnly(false)// true in prod
@@ -225,9 +227,12 @@ public class AuthService {
         public ResponseEntity<String> logout(String userId, HttpServletResponse response) {
 
                 // clear user session
-                String deleted = redisService.delete("user:" + userId);
-                if (deleted == null)
+                String deletedUserSessionId = redisService.delete("user:" + userId);
+
+                if (deletedUserSessionId == null)
                         log.info("User session didn't exist");
+
+                String deletedUserId = redisService.delete("session:" + deletedUserSessionId);
 
                 ResponseCookie deleteCookie = ResponseCookie.from("session", "")
                                 .httpOnly(true)
@@ -241,25 +246,22 @@ public class AuthService {
                 return ResponseEntity.ok("User logged out successfully");
         }
 
-        public ResponseEntity<String> refresh(String userId, String sessionId, HttpServletResponse response) {
-
-                var user = authRepository.findById(UUID.fromString(userId)).orElseThrow(
-                                () -> new UserNotFoundException("User not found"));
+        public ResponseEntity<String> refresh(String sessionId, HttpServletResponse response) {
 
                 // check if stored sessionId matches the cookie sessionId
-                RedisSessionDetails sessionDetails = redisService.get("user:" + userId,
-                                RedisSessionDetails.class);
-                if (sessionDetails.getSessionId().equals(sessionId)) {
-                        // rotate the sessionId
-                        generateSessionIdSaveInRedisAndSetCookie(userId, response);
+                String userId = redisService.get("session:" + sessionId,
+                                String.class);
+                // rotate the sessionId
+                generateSessionIdSaveInRedisAndSetCookie(userId, response);
 
-                        // send refreshed jwt in reponse
-                        String token = jwtUtil.generateToken(user);
-                        return ResponseEntity.ok(token);
-                } else {
-                        throw new SessionExpiredException("Session Expired. Login again",
-                                        HttpStatus.UNAUTHORIZED.value());
-                }
+                // send refreshed jwt in reponse
+
+                var user = authRepository.findById(UUID.fromString(userId))
+                                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
+
+                String token = jwtUtil.generateToken(user);
+                return ResponseEntity.ok(token);
+
         }
 
 }

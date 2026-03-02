@@ -36,7 +36,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.signup(signupRequest, response));
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<String> logout(@CookieValue("session") String sessionId, HttpServletResponse response) {
         return authService.logout(sessionId, response);
     }

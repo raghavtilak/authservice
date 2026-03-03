@@ -253,7 +253,9 @@ public class AuthService {
                 if (deletedUserId == null)
                         log.info("User session didn't exist");
 
-                String deletedUserSessionId = redisService.delete("user:" + deletedUserId);
+                String deletedUserSessionId = redisService.delete("user:" + deletedUserId.replace("\"", ""));
+
+                log.info("Deleted user session id from redis : {}", deletedUserSessionId);
 
                 ResponseCookie deleteCookie = ResponseCookie.from("session", "")
                                 .httpOnly(true)

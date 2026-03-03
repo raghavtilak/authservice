@@ -232,10 +232,10 @@ public class AuthService {
                  */
                 ResponseCookie refreshCookie = ResponseCookie.from("session", sessionId)
                                 .httpOnly(true)
-                                .secure(false) // true in prod
+                                .secure(true)
                                 .path("/auth")
                                 .maxAge(Duration.ofHours(2))
-                                .sameSite("Lax") // None in prod
+                                .sameSite("None")
                                 .build();
 
                 httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
@@ -257,7 +257,7 @@ public class AuthService {
 
                 ResponseCookie deleteCookie = ResponseCookie.from("session", "")
                                 .httpOnly(true)
-                                .secure(false)
+                                .secure(true)
                                 .path("/auth")
                                 .maxAge(0)
                                 .build();

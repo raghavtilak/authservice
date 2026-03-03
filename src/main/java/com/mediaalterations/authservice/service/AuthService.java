@@ -213,12 +213,29 @@ public class AuthService {
                 // reverse index required for refreshToken
                 redisService.set("session:" + sessionId, userId, 2L);
                 // send sessionId in Http Safe cookie
+
+                /*
+                 * 
+                 * If the backend and frontend are on same domains, then we use sameSite=strict,
+                 * which ensures cookie is sent only in first party context, and not sent in
+                 * cross site requests, which provides good CSRF protection. In this case we can
+                 * also set secure flag to true, to ensure cookie is sent only over HTTPS.
+                 * 
+                 * But if backend and frontend are on different domains, then we have to use
+                 * sameSite=None, to allow cookie to be sent in cross site requests. In this
+                 * case secure flag must be set to true, as modern browsers require secure flag
+                 * for cookies with sameSite=None.
+                 * 
+                 * For local development where frontend is on localhost and backend is on some
+                 * other domain, we can use sameSite=None or sameSite=Lax and secure=false, but
+                 * this should be only for local development, and not for production.
+                 */
                 ResponseCookie refreshCookie = ResponseCookie.from("session", sessionId)
                                 .httpOnly(true)
-                                .secure(true)
+                                .secure(false) // true in prod
                                 .path("/auth")
                                 .maxAge(Duration.ofHours(2))
-                                .sameSite("Strict")
+                                .sameSite("Lax") // None in prod
                                 .build();
 
                 httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
@@ -240,7 +257,7 @@ public class AuthService {
 
                 ResponseCookie deleteCookie = ResponseCookie.from("session", "")
                                 .httpOnly(true)
-                                .secure(true)
+                                .secure(false)
                                 .path("/auth")
                                 .maxAge(0)
                                 .build();
